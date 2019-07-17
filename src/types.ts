@@ -50,7 +50,7 @@ export interface Track {
   }
 }
 
-export interface AudioFeautre {
+export interface AudioFeature {
   analysis_url: string
   id: string
   track_href: string

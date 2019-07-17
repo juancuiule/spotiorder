@@ -1,16 +1,40 @@
 import React from 'react';
 import './App.css';
 
-import { TOKEN } from './config';
+import { Playlist, Track, AudioFeature } from './types';
+import { login, getHashParams } from './auth';
 
-import { Playlist, Track, AudioFeautre } from './types';
-import { string } from 'prop-types';
+type NumericKey =
+  | 'acousticness'
+  | 'danceability'
+  | 'duration_ms'
+  | 'energy'
+  | 'instrumentalness'
+  | 'key'
+  | 'liveness'
+  | 'loudness'
+  | 'mode'
+  | 'speechiness'
+  | 'tempo'
+  | 'time_signature'
+  | 'valence';
 
 const App: React.FC = () => {
   const [username, setUsername] = React.useState('');
 
   const [playlists, setPlaylists] = React.useState<Playlist[]>([]);
   const [tracks, setTracks] = React.useState<Track[]>([]);
+
+  const [token, setToken] = React.useState('');
+
+  React.useEffect(() => {
+    const params = getHashParams();
+    console.log(params);
+    if (params !== undefined) {
+      const access_token = params.access_token;
+      setToken(access_token);
+    }
+  }, []);
 
   const search = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -20,7 +44,7 @@ const App: React.FC = () => {
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${TOKEN}`
+          Authorization: `Bearer ${token}`
         }
       }
     ).then(r => r.json())) as { items: Playlist[]; next: string };
@@ -32,14 +56,33 @@ const App: React.FC = () => {
       headers: {
         Accept: 'application/json',
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${TOKEN}`
+        Authorization: `Bearer ${token}`
       }
     }).then(r => r.json())) as { items: Track[] };
     setTracks(items);
   };
 
-  const [orderedTracks, setOrderedTracks] = React.useState<string[]>([])
+  const [orderedTracks, setOrderedTracks] = React.useState<string[]>([]);
 
+  const keys: NumericKey[] = [
+    'acousticness',
+    'danceability',
+    'duration_ms',
+    'energy',
+    'instrumentalness',
+    'key',
+    'liveness',
+    'loudness',
+    'mode',
+    'speechiness',
+    'tempo',
+    'time_signature',
+    'valence'
+  ];
+
+  const [zipped, setZipped] = React.useState<
+    Array<{ track: Track; audio_feature: AudioFeature }>
+  >([]);
   const getAudioFeatures = React.useCallback(async () => {
     const ids = tracks.map(t => t.track.id).join(',');
     const { audio_features } = (await fetch(
@@ -48,31 +91,43 @@ const App: React.FC = () => {
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${TOKEN}`
+          Authorization: `Bearer ${token}`
         }
       }
-    ).then(r => r.json())) as { audio_features: AudioFeautre[] };
+    ).then(r => r.json())) as { audio_features: AudioFeature[] };
 
     const zip = tracks.map((t, i) => ({
       track: t,
       audio_feature: audio_features[i]
-    }))
+    }));
 
-    const ordered = zip.sort((a, b) => {
-      return a.audio_feature.tempo - b.audio_feature.tempo
-    }).map(x => x.track.track.name)
+    setZipped(zip);
+  }, [tracks, token]);
 
-    setOrderedTracks(ordered)
-  }, [tracks]);
+  const [keyOrderBy, setKeyOrderBy] = React.useState<NumericKey>('loudness');
+  const order = React.useCallback(() => {
+    const ordered = zipped
+      .sort((a, b) => {
+        return a.audio_feature[keyOrderBy] - b.audio_feature[keyOrderBy];
+      })
+      .map(x => x.track.track.name);
+
+    setOrderedTracks(ordered);
+  }, [zipped, keyOrderBy]);
+
+  React.useEffect(order, [keyOrderBy]);
 
   React.useEffect(() => {
-    getAudioFeatures();
+    if (tracks.length !== 0) {
+      getAudioFeatures();
+    }
   }, [tracks, getAudioFeatures]);
 
   return (
     <div className="App">
       <header className="App-header">
         <p>Search by username</p>
+        <button onClick={login}>Login</button>
         <form onSubmit={search}>
           <input
             autoFocus
@@ -94,8 +149,9 @@ const App: React.FC = () => {
           {tracks.length === 0
             ? playlists.map(p => {
                 return (
-                  <div onClick={searchTracks(p.tracks.href)}>
+                  <div key={p.id} onClick={searchTracks(p.tracks.href)}>
                     <img
+                      alt={p.id}
                       src={p.images[0].url}
                       style={{
                         height: '100px',
@@ -107,14 +163,39 @@ const App: React.FC = () => {
                 );
               })
             : null}
+        </div>
+        <div>
+          <select
+            id="order-key"
+            value={keyOrderBy}
+            onChange={e => setKeyOrderBy(e.target.value as NumericKey)}
+          >
+            {keys.map(k => {
+              return (
+                <option key={k} value={k}>
+                  {k}
+                </option>
+              );
+            })}
+          </select>
+        </div>
+        <div
+          style={{
+            width: '80%',
+            margin: '15px auto',
+            display: 'flex',
+            flexDirection: 'row',
+            flexWrap: 'wrap'
+          }}
+        >
           <ul style={{ fontSize: '10px', textAlign: 'left' }}>
-            {tracks.map(t => (
-              <li>{t.track.name}</li>
+            {tracks.map((t, i) => (
+              <li key={t.track.id + i}>{t.track.name}</li>
             ))}
           </ul>
           <ul style={{ fontSize: '10px', textAlign: 'left' }}>
-            {orderedTracks.map(t => (
-              <li>{t}</li>
+            {orderedTracks.map((t, i) => (
+              <li key={t + i}>{t}</li>
             ))}
           </ul>
         </div>
