@@ -36,7 +36,7 @@ export function generateRandomString(length: number) {
 
 export function login() {
   const client_id = '36857722e25648a38fe65d054100e8c9';
-  const redirect_uri = 'http://localhost:3001/';
+  const redirect_uri = 'http://localhost:3000/';
   const state = generateRandomString(16);
   localStorage.setItem(stateKey, state);
   const scope = 'user-read-email';

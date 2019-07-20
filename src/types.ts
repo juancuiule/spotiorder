@@ -4,6 +4,21 @@ export type Image = {
   width: number;
 };
 
+export type NumericKey =
+| 'acousticness'
+| 'danceability'
+| 'duration_ms'
+| 'energy'
+| 'instrumentalness'
+| 'key'
+| 'liveness'
+| 'loudness'
+| 'mode'
+| 'speechiness'
+| 'tempo'
+| 'time_signature'
+| 'valence';
+
 export interface Playlist {
   collaborative: boolean;
   external_urls: {
@@ -47,6 +62,9 @@ export interface Track {
   track: {
     id: string
     name: string
+    album: {
+      images: Image[]
+    }
   }
 }
 
