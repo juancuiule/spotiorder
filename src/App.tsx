@@ -33,6 +33,8 @@ const App: React.FC = () => {
     if (params !== undefined) {
       const access_token = params.access_token;
       setToken(access_token);
+    } else {
+      login();
     }
   }, []);
 
@@ -126,28 +128,34 @@ const App: React.FC = () => {
   return (
     <div className="App">
       <header className="App-header">
-        <p>Search by username</p>
-        <button onClick={login}>Login</button>
-        <form onSubmit={search}>
-          <input
-            autoFocus
-            type="text"
-            value={username}
-            onChange={e => setUsername(e.target.value)}
-          />
-          <button>Search</button>
-        </form>
-        <div
-          style={{
-            width: '80%',
-            margin: '15px auto',
-            display: 'flex',
-            flexDirection: 'row',
-            flexWrap: 'wrap'
-          }}
-        >
-          {tracks.length === 0
-            ? playlists.map(p => {
+        {tracks.length === 0 && playlists.length === 0 ? (
+          <>
+            <p>Search by username</p>
+            <form onSubmit={search}>
+              <input
+                autoFocus
+                type="text"
+                value={username}
+                onChange={e => setUsername(e.target.value)}
+              />
+              <button>Search</button>
+            </form>
+          </>
+        ) : null}
+
+        {tracks.length === 0 && playlists.length !== 0 ? (
+          <>
+            <p>Playlists</p>
+            <div
+              style={{
+                width: '80%',
+                margin: '15px auto',
+                display: 'flex',
+                flexDirection: 'row',
+                flexWrap: 'wrap'
+              }}
+            >
+              {playlists.map(p => {
                 return (
                   <div key={p.id} onClick={searchTracks(p.tracks.href)}>
                     <img
@@ -161,44 +169,51 @@ const App: React.FC = () => {
                     />
                   </div>
                 );
-              })
-            : null}
-        </div>
-        <div>
-          <select
-            id="order-key"
-            value={keyOrderBy}
-            onChange={e => setKeyOrderBy(e.target.value as NumericKey)}
-          >
-            {keys.map(k => {
-              return (
-                <option key={k} value={k}>
-                  {k}
-                </option>
-              );
-            })}
-          </select>
-        </div>
-        <div
-          style={{
-            width: '80%',
-            margin: '15px auto',
-            display: 'flex',
-            flexDirection: 'row',
-            flexWrap: 'wrap'
-          }}
-        >
-          <ul style={{ fontSize: '10px', textAlign: 'left' }}>
-            {tracks.map((t, i) => (
-              <li key={t.track.id + i}>{t.track.name}</li>
-            ))}
-          </ul>
-          <ul style={{ fontSize: '10px', textAlign: 'left' }}>
-            {orderedTracks.map((t, i) => (
-              <li key={t + i}>{t}</li>
-            ))}
-          </ul>
-        </div>
+              })}
+            </div>
+          </>
+        ) : null}
+        {tracks.length !== 0 ? (
+          <>
+            <p>Tracks</p>
+            <div>
+              <label>Order by: </label>
+              <select
+                id="order-key"
+                value={keyOrderBy}
+                onChange={e => setKeyOrderBy(e.target.value as NumericKey)}
+              >
+                {keys.map(k => {
+                  return (
+                    <option key={k} value={k}>
+                      {k}
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
+            <div
+              style={{
+                width: '80%',
+                margin: '15px auto',
+                display: 'flex',
+                flexDirection: 'row',
+                flexWrap: 'wrap'
+              }}
+            >
+              <ul style={{ fontSize: '10px', textAlign: 'left' }}>
+                {tracks.map((t, i) => (
+                  <li key={t.track.id + i}>{t.track.name}</li>
+                ))}
+              </ul>
+              <ul style={{ fontSize: '10px', textAlign: 'left' }}>
+                {orderedTracks.map((t, i) => (
+                  <li key={t + i}>{t}</li>
+                ))}
+              </ul>
+            </div>
+          </>
+        ) : null}
       </header>
     </div>
   );
