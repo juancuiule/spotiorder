@@ -47,7 +47,7 @@ export interface Playlist {
   uri: string;
 }
 
-export interface Track {
+export interface TrackData {
   added_at: string
   added_by: {
     external_urls: {
