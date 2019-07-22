@@ -60,6 +60,7 @@ export interface TrackData {
   }
   is_local: boolean
   track: {
+    preview_url: string
     id: string
     name: string
     album: {
@@ -84,7 +85,7 @@ export interface AudioFeature {
   loudness: number
   mode: number
   speechiness: number
-  tempo: number
+  tempo: string
   time_signature: number
   valence: number
 }

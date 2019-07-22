@@ -35,8 +35,8 @@ export function generateRandomString(length: number) {
 }
 
 export function login() {
-  const client_id = "36857722e25648a38fe65d054100e8c9";
-  const redirect_uri = "http://localhost:3000/";
+  const client_id = process.env.REACT_APP_CLIENT_ID;
+  const redirect_uri = process.env.REACT_APP_REDIRECT_URI as string;
   const state = generateRandomString(16);
   const scope = "user-read-email";
   const url =
